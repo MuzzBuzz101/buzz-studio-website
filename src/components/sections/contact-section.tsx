@@ -24,11 +24,13 @@ export function ContactSection() {
     const form = new FormData(e.currentTarget);
     const name = form.get("name");
     const email = form.get("email");
+    const duration = form.get("duration");
     const message = form.get("message");
 
     const subject = encodeURIComponent(`New Inquiry — ${projectType || "General"}`);
+    const durationLine = duration ? `Estimated Length: ${duration} minutes\n` : "";
     const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nProject Type: ${projectType}\n\n${message}`
+      `Name: ${name}\nEmail: ${email}\nProject Type: ${projectType}\n${durationLine}\n${message}`
     );
     window.location.href = `mailto:${siteConfig.email}?subject=${subject}&body=${body}`;
     setSubmitted(true);
@@ -116,6 +118,21 @@ export function ContactSection() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex flex-col gap-2 sm:col-span-2">
+                <label htmlFor="duration" className="text-xs uppercase tracking-widest2 text-obsidian-400">
+                  Estimated Video Length (minutes)
+                </label>
+                <input
+                  id="duration"
+                  name="duration"
+                  type="number"
+                  min={1}
+                  step={1}
+                  inputMode="numeric"
+                  placeholder="e.g. 3"
+                  className="h-14 rounded-lg border border-white/15 bg-white/[0.02] px-4 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
+                />
               </div>
               <div className="flex flex-col gap-2 sm:col-span-2">
                 <label htmlFor="message" className="text-xs uppercase tracking-widest2 text-obsidian-400">

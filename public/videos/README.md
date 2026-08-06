@@ -1,6 +1,10 @@
-Drop your showreel and case-study video files here, e.g.:
+This folder is for small, self-hosted clips only — anything the browser has to
+download directly, so it must stay light.
 
-- showreel.mp4 — looping ambient hero background reel (muted, ~15-30s, H.264, under 8MB recommended)
-- case-studies/*.mp4 — optional local case study clips
+- `showreel.mp4` — looping ambient hero background reel. Keep it short (~15-30s),
+  muted (no audio track), downscaled (≤1920px wide), H.264, ideally under 8MB.
+  Reference it as `<Hero videoSrc="/videos/showreel.mp4" />` in `src/app/page.tsx`.
 
-Reference them from `src/data/site.ts` / `src/data/projects.ts` as `/videos/showreel.mp4`.
+Full-length case-study films (the long, heavy stuff) do **not** belong here — upload
+those to Vimeo and embed them via `vimeoId` in `src/data/projects.ts` instead. See
+`raw-footage/README.md` at the project root for that workflow.

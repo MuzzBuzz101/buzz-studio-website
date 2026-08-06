@@ -3,7 +3,8 @@ export type ProjectCategory =
   | "Music Video"
   | "Real Estate"
   | "Fashion"
-  | "Events & Portraits";
+  | "Events & Portraits"
+  | "Cinematic";
 
 export type Role =
   | "Creative Director"
@@ -38,12 +39,17 @@ export interface Project {
   category: ProjectCategory;
   roles: Role[];
   year: number;
-  coverImage: string;
+  /** Real cover photo — omit until real content is added (shows a placeholder tile). */
+  coverImage?: string;
   coverVideo?: string;
   thumbnailVideo?: string;
   synopsis: string;
   description: string;
+  /** Self-hosted, compressed case-study video (preferred over vimeoId when both are set). */
+  videoSrc?: string;
   vimeoId?: string;
+  /** Real aspect ratio of the video file — defaults to "16:9" if omitted. */
+  videoAspect?: "16:9" | "9:16";
   featured: boolean;
   specs: ProjectSpecs;
   gallery: GalleryImage[];
@@ -97,6 +103,8 @@ export type InquiryType =
   | "Music Video"
   | "Real Estate"
   | "Fashion"
+  | "Cinematic"
+  | "Events & Portraits"
   | "Post-Production"
   | "Photography"
   | "Other";

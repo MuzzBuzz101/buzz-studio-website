@@ -10,19 +10,23 @@ interface VimeoEmbedProps {
   title: string;
   poster?: string;
   className?: string;
+  /** Real aspect ratio of the video. Defaults to "16:9". */
+  aspect?: "16:9" | "9:16";
 }
 
 /**
  * Facade embed: Vimeo's player bundle is several hundred KB, so the iframe is
  * only injected on interaction. Until then this is just one optimized image.
  */
-export function VimeoEmbed({ vimeoId, title, poster, className }: VimeoEmbedProps) {
+export function VimeoEmbed({ vimeoId, title, poster, className, aspect = "16:9" }: VimeoEmbedProps) {
   const [active, setActive] = useState(false);
+  const isVertical = aspect === "9:16";
 
   return (
     <div
       className={cn(
-        "relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black",
+        "relative w-full overflow-hidden rounded-2xl border border-white/10 bg-black",
+        isVertical ? "mx-auto aspect-[9/16] max-w-md" : "aspect-video",
         className
       )}
     >

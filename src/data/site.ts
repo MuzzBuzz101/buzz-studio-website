@@ -21,6 +21,38 @@ export const siteConfig = {
   ],
 };
 
+/**
+ * Hero background video rotation — plays each clip through to the end, then
+ * cross-fades into the next one. Horizontal (16:9) clips only, since the hero
+ * is a full-bleed landscape strip and vertical (9:16) clips would need heavy
+ * cropping. Reuses the already-compressed case-study films, one clip
+ * downloaded at a time (see <HeroVideoRotator>), so it never blocks initial
+ * page load. Keyvant and Lombard are vertical (9:16) — see their own case
+ * study pages instead.
+ */
+export const heroVideos = [
+  "/videos/case-studies/shawn-x-music-video.mp4",
+  "/videos/case-studies/raccoon-restaurant.mp4",
+  "/videos/case-studies/ak-reel.mp4",
+  "/videos/case-studies/sammier-blue.mp4",
+  "/videos/case-studies/faizan-sport.mp4",
+  "/videos/case-studies/cinematic-reel.mp4",
+  "/videos/case-studies/aaignaish-moon.mp4",
+  "/videos/case-studies/alina-cinematic.mp4",
+  "/videos/case-studies/rue-cinematics.mp4",
+];
+
+/** Fallback photo rotation, used only if `heroVideos` is ever cleared out. */
+export const heroImages = [
+  "/images/projects/shawn-x-music-video/cover.jpg",
+  "/images/projects/ladre-lookbook/03.jpg",
+  "/images/projects/graduation-portraits/02.jpg",
+  "/images/stills/events-and-graduation/12.jpg",
+  "/images/projects/ladre-lookbook/cover.jpg",
+  "/images/projects/sammier-blue/cover.jpg",
+  "/images/projects/birthday-event/cover.jpg",
+];
+
 export const navLinks = [
   { label: "Work", href: "/#work" },
   { label: "Motion / Stills", href: "/#motion-stills" },
@@ -33,6 +65,8 @@ export const inquiryTypes: InquiryType[] = [
   "Music Video",
   "Real Estate",
   "Fashion",
+  "Cinematic",
+  "Events & Portraits",
   "Post-Production",
   "Photography",
   "Other",

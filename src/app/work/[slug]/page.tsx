@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, MapPin, Clock } from "lucide-react";
 import { VimeoEmbed } from "@/components/ui/vimeo-embed";
+import { LocalVideoEmbed } from "@/components/ui/local-video-embed";
 import { getAllSlugs, getProjectBySlug, projects } from "@/data/projects";
 import { RevealGallery, RevealHeader } from "@/components/sections/case-study-reveal";
 
@@ -23,7 +24,7 @@ export function generateMetadata({ params }: PageProps): Metadata {
     openGraph: {
       title: project.title,
       description: project.synopsis,
-      images: [project.coverImage],
+      images: project.coverImage ? [project.coverImage] : undefined,
     },
   };
 }
@@ -50,11 +51,19 @@ export default function CaseStudyPage({ params }: PageProps) {
         <RevealHeader project={project} />
 
         <div className="mt-10 md:mt-14">
-          {project.vimeoId ? (
+          {project.videoSrc ? (
+            <LocalVideoEmbed
+              src={project.videoSrc}
+              title={project.title}
+              poster={project.coverImage}
+              aspect={project.videoAspect}
+            />
+          ) : project.vimeoId ? (
             <VimeoEmbed
               vimeoId={project.vimeoId}
               title={project.title}
               poster={project.coverImage}
+              aspect={project.videoAspect}
             />
           ) : (
             <div className="flex aspect-video w-full items-center justify-center rounded-2xl border border-white/10 bg-obsidian-900">

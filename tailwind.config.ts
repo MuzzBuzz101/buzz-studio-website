@@ -108,6 +108,7 @@ const config: Config = {
       },
       transitionDuration: {
         1200: "1200ms",
+        1500: "1500ms",
       },
     },
   },

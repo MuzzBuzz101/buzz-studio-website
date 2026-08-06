@@ -34,3 +34,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw video masters — upload to Vimeo, don't ship or commit these
+/raw-footage
+
+# raw/original full-res photos — compressed, curated copies live in public/images
+/raw-photos
+
+# local deploy/upload archives (not part of the repo)
+/public.zip
+/src.zip
+__MACOSX/

@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Project } from "@/types";
 import { Reveal } from "@/components/ui/reveal";
-import { cn } from "@/lib/utils";
+import { RotatingCover } from "@/components/ui/rotating-cover";
+import { cn, getProjectCoverImages } from "@/lib/utils";
 
 interface ProjectCardProps {
   project: Project;
@@ -33,16 +34,18 @@ export function ProjectCard({ project, index, view = "grid" }: ProjectCardProps)
           <span className="hidden md:inline">{project.roles.join(" / ")}</span>
           <span>{project.year}</span>
         </div>
-        <div className="pointer-events-none absolute right-0 top-1/2 hidden w-40 -translate-y-1/2 overflow-hidden rounded-lg opacity-0 shadow-2xl transition-all duration-500 group-hover:opacity-100 md:block"
+        <div className="pointer-events-none absolute right-0 top-1/2 hidden w-40 -translate-y-1/2 overflow-hidden rounded-lg bg-obsidian-800 opacity-0 shadow-2xl transition-all duration-500 group-hover:opacity-100 md:block"
           style={{ transform: "translateY(-50%) translateX(20%)" }}
         >
-          <Image
-            src={project.coverImage}
-            alt=""
-            width={240}
-            height={150}
-            className="aspect-video w-full object-cover"
-          />
+          {project.coverImage && (
+            <Image
+              src={project.coverImage}
+              alt=""
+              width={240}
+              height={150}
+              className="aspect-video w-full object-cover"
+            />
+          )}
         </div>
       </Link>
     );
@@ -55,12 +58,12 @@ export function ProjectCard({ project, index, view = "grid" }: ProjectCardProps)
         data-cursor="view"
         className={cn("group relative block overflow-hidden rounded-xl bg-obsidian-800")}
       >
-        <div className="relative aspect-[4/5] w-full overflow-hidden">
-          <Image
-            src={project.coverImage}
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-obsidian-800">
+          <RotatingCover
+            images={getProjectCoverImages(project)}
             alt={project.title}
-            fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            startIndex={0}
             className="object-cover transition-transform duration-1200 ease-cinematic group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-90" />

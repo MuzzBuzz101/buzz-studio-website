@@ -2,7 +2,7 @@
 
 A premium, cinematic, OLED-dark portfolio for Syed Muzammil Shah Kazmi (Buzz Studio) — Creative Producer, Cinematographer, Editor & Commercial Photographer. Content is sourced from the real CV: food & beverage retainers, real estate, fashion, and music-video work for clients like Raccoon Restaurant, Big Bites Fast Food, Shawn X, Keyvant Real Estate, and LADRE.
 
-> **Note:** Cover/gallery photography is still using generic downloaded placeholders (see `npm run placeholders`). Swap in real client photos/videos and Vimeo IDs in `src/data/projects.ts` and `src/data/stills.ts` before launch.
+> **Note:** No placeholder photography ships with the site. Case-study copy, roles, clients, and specs come from the real CV; cover photos, galleries, and stills are intentionally empty until real assets are added — see "Adding Real Media" below.
 
 ## Tech Stack
 
@@ -21,7 +21,6 @@ A premium, cinematic, OLED-dark portfolio for Syed Muzammil Shah Kazmi (Buzz Stu
 
 ```bash
 npm install
-npm run placeholders   # downloads placeholder photography into public/images (once)
 npm run dev
 ```
 
@@ -68,8 +67,8 @@ All content is mock JSON-style data in `src/data/`, fully typed via `src/types/i
 ## Adding Real Media
 
 - **Hero showreel**: drop a muted looping `.mp4` at `public/videos/showreel.mp4`, then pass it to the hero: `<Hero videoSrc="/videos/showreel.mp4" />` in `src/app/page.tsx`. Until then, the hero renders an animated grain/gradient placeholder — never a broken video.
-- **Case study video**: each project has a `vimeoId` field rendered via `VimeoEmbed`. Swap in real Vimeo IDs, or omit it to fall back to the "available on request" state.
-- **Images**: all photography is served locally from `public/images/` (fetched once by `npm run placeholders`). Replace those files in place — or point `coverImage` / `gallery` / `stills` at new paths. If you move assets to a CDN, add the host to `images.remotePatterns` in `next.config.mjs`.
+- **Case study video**: each project supports a self-hosted `videoSrc` (rendered via `LocalVideoEmbed`, see `raw-footage/README.md` for the compression workflow) or a `vimeoId` (rendered via `VimeoEmbed`). Omit both to fall back to the "available on request" state.
+- **Images**: `coverImage` is optional on `Project` — leave it unset and the UI shows a clean dark placeholder tile instead of a broken image. Add real photos to `public/images/` and reference them via `coverImage` / `gallery` on projects in `src/data/projects.ts`, and via `stills` in `src/data/stills.ts`. If you move assets to a CDN, add the host to `images.remotePatterns` in `next.config.mjs`.
 
 ## Performance Notes
 
