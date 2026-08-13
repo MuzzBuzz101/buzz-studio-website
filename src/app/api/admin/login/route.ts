@@ -7,11 +7,15 @@ import {
 } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   if (!isAdminAuthConfigured()) {
     return NextResponse.json(
-      { error: "Admin auth is not configured. Set ADMIN_PASSWORD and ADMIN_SECRET." },
+      {
+        error:
+          "Admin auth is not configured. Set ADMIN_PASSWORD and ADMIN_SECRET on the Vercel project (Production), then Redeploy and wait until Ready.",
+      },
       { status: 503 }
     );
   }

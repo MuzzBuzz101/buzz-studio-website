@@ -5,8 +5,16 @@ import {
 
 const encoder = new TextEncoder();
 
+/** Runtime-safe env read (avoids build-time inlining of undefined). */
+function readEnv(name: string): string | undefined {
+  const value = process.env[name];
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 function getSecret(): string {
-  const secret = process.env.ADMIN_SECRET?.trim();
+  const secret = readEnv("ADMIN_SECRET");
   if (!secret) {
     throw new Error("ADMIN_SECRET is not configured.");
   }
@@ -60,12 +68,11 @@ async function hmacVerify(
 }
 
 export function getAdminPassword(): string | null {
-  const password = process.env.ADMIN_PASSWORD?.trim();
-  return password || null;
+  return readEnv("ADMIN_PASSWORD") ?? null;
 }
 
 export function isAdminAuthConfigured(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD?.trim() && process.env.ADMIN_SECRET?.trim());
+  return Boolean(readEnv("ADMIN_PASSWORD") && readEnv("ADMIN_SECRET"));
 }
 
 export async function createAdminSessionToken(
