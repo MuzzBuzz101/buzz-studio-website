@@ -48,3 +48,8 @@ next-env.d.ts
 /public.zip
 /src.zip
 __MACOSX/
+
+# Admin local persistence (JSON store + uploaded files)
+/data/*
+!/data/.gitkeep
+/public/uploads/

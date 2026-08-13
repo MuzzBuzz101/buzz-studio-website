@@ -16,25 +16,78 @@ const quickLinks = [
   { label: "LinkedIn", href: siteConfig.socials[1].href, icon: LinkedInIcon },
 ];
 
+function openMailtoFallback(payload: {
+  name: string;
+  email: string;
+  projectType?: string;
+  duration?: string;
+  message: string;
+}) {
+  const subject = encodeURIComponent(`New Inquiry — ${payload.projectType || "General"}`);
+  const durationLine = payload.duration
+    ? `Estimated Length: ${payload.duration} minutes\n`
+    : "";
+  const body = encodeURIComponent(
+    `Name: ${payload.name}\nEmail: ${payload.email}\nProject Type: ${payload.projectType}\n${durationLine}\n${payload.message}`
+  );
+  window.location.href = `mailto:${siteConfig.email}?subject=${subject}&body=${body}`;
+}
+
 export function ContactSection() {
   const [projectType, setProjectType] = useState<string | undefined>(undefined);
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
+    "idle"
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    const name = form.get("name");
-    const email = form.get("email");
-    const duration = form.get("duration");
-    const message = form.get("message");
+    const formEl = e.currentTarget;
+    const form = new FormData(formEl);
+    const name = String(form.get("name") || "").trim();
+    const email = String(form.get("email") || "").trim();
+    const durationRaw = form.get("duration");
+    const duration =
+      durationRaw != null && String(durationRaw).trim()
+        ? String(durationRaw).trim()
+        : undefined;
+    const message = String(form.get("message") || "").trim();
 
-    const subject = encodeURIComponent(`New Inquiry — ${projectType || "General"}`);
-    const durationLine = duration ? `Estimated Length: ${duration} minutes\n` : "";
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nProject Type: ${projectType}\n${durationLine}\n${message}`
-    );
-    window.location.href = `mailto:${siteConfig.email}?subject=${subject}&body=${body}`;
-    setSubmitted(true);
+    setStatus("submitting");
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          projectType,
+          inquiryType: projectType,
+          duration,
+          videoLength: duration,
+          message,
+        }),
+      });
+
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error || "Could not send inquiry.");
+      }
+
+      setStatus("success");
+      formEl.reset();
+      setProjectType(undefined);
+    } catch (err) {
+      setStatus("error");
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Could not send inquiry. You can fall back to email."
+      );
+      openMailtoFallback({ name, email, projectType, duration, message });
+    }
   };
 
   return (
@@ -76,84 +129,118 @@ export function ContactSection() {
           </Reveal>
 
           <Reveal delay={100}>
-            <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 md:p-10">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="flex flex-col gap-2 sm:col-span-1">
-                <label htmlFor="name" className="text-xs uppercase tracking-widest2 text-obsidian-400">
-                  Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="Your full name"
-                  className="h-14 rounded-lg border border-white/15 bg-white/[0.02] px-4 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
-                />
+            {status === "success" ? (
+              <div className="glass rounded-2xl p-6 md:p-10">
+                <p className="text-xs uppercase tracking-widest2 text-obsidian-400">
+                  Inquiry received
+                </p>
+                <h3 className="mt-4 font-display text-3xl text-white">
+                  Thank you — we&rsquo;ll be in touch.
+                </h3>
+                <p className="mt-4 max-w-md text-sm text-obsidian-300">
+                  Your project details were sent to the studio. For anything urgent, reach out
+                  via WhatsApp or email.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-8"
+                  onClick={() => setStatus("idle")}
+                >
+                  Send another inquiry
+                </Button>
               </div>
-              <div className="flex flex-col gap-2 sm:col-span-1">
-                <label htmlFor="email" className="text-xs uppercase tracking-widest2 text-obsidian-400">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="you@company.com"
-                  className="h-14 rounded-lg border border-white/15 bg-white/[0.02] px-4 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
-                />
-              </div>
-              <div className="flex flex-col gap-2 sm:col-span-2">
-                <label className="text-xs uppercase tracking-widest2 text-obsidian-400">
-                  Project Type
-                </label>
-                <Select value={projectType} onValueChange={setProjectType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a project type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {inquiryTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2 sm:col-span-2">
-                <label htmlFor="duration" className="text-xs uppercase tracking-widest2 text-obsidian-400">
-                  Estimated Video Length (minutes)
-                </label>
-                <input
-                  id="duration"
-                  name="duration"
-                  type="number"
-                  min={1}
-                  step={1}
-                  inputMode="numeric"
-                  placeholder="e.g. 3"
-                  className="h-14 rounded-lg border border-white/15 bg-white/[0.02] px-4 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
-                />
-              </div>
-              <div className="flex flex-col gap-2 sm:col-span-2">
-                <label htmlFor="message" className="text-xs uppercase tracking-widest2 text-obsidian-400">
-                  Project Details
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  required
-                  rows={4}
-                  placeholder="Tell us about your timeline, deliverables, and vision."
-                  className="resize-none rounded-lg border border-white/15 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
-                />
-              </div>
-            </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 md:p-10">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="flex flex-col gap-2 sm:col-span-1">
+                    <label htmlFor="name" className="text-xs uppercase tracking-widest2 text-obsidian-400">
+                      Name
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      required
+                      placeholder="Your full name"
+                      className="h-14 rounded-lg border border-white/15 bg-white/[0.02] px-4 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 sm:col-span-1">
+                    <label htmlFor="email" className="text-xs uppercase tracking-widest2 text-obsidian-400">
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="you@company.com"
+                      className="h-14 rounded-lg border border-white/15 bg-white/[0.02] px-4 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 sm:col-span-2">
+                    <label className="text-xs uppercase tracking-widest2 text-obsidian-400">
+                      Project Type
+                    </label>
+                    <Select value={projectType} onValueChange={setProjectType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a project type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {inquiryTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:col-span-2">
+                    <label htmlFor="duration" className="text-xs uppercase tracking-widest2 text-obsidian-400">
+                      Estimated Video Length (minutes)
+                    </label>
+                    <input
+                      id="duration"
+                      name="duration"
+                      type="number"
+                      min={1}
+                      step={1}
+                      inputMode="numeric"
+                      placeholder="e.g. 3"
+                      className="h-14 rounded-lg border border-white/15 bg-white/[0.02] px-4 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 sm:col-span-2">
+                    <label htmlFor="message" className="text-xs uppercase tracking-widest2 text-obsidian-400">
+                      Project Details
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      required
+                      rows={4}
+                      placeholder="Tell us about your timeline, deliverables, and vision."
+                      className="resize-none rounded-lg border border-white/15 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
+                    />
+                  </div>
+                </div>
 
-              <Button type="submit" size="lg" className="mt-8 w-full sm:w-auto">
-                {submitted ? "Opening your email client…" : "Send Inquiry"}
-              </Button>
-            </form>
+                {status === "error" && errorMessage ? (
+                  <p className="mt-4 text-sm text-red-300" role="alert">
+                    {errorMessage} Opening your email client as a fallback…
+                  </p>
+                ) : null}
+
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="mt-8 w-full sm:w-auto"
+                  disabled={status === "submitting"}
+                >
+                  {status === "submitting" ? "Sending…" : "Send Inquiry"}
+                </Button>
+              </form>
+            )}
           </Reveal>
         </div>
       </div>
