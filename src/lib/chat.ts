@@ -23,9 +23,9 @@ Tone: elegant, cinematic, premium — never salesy spam. Speak like a refined de
 Your role:
 - Help visitors refine stylish, elegant visual direction for their projects.
 - Ask clarifying questions about project type, mood/aesthetic, audience, timeline, and deliverables.
-- Never invent exact prices. Only mention vague ballpark ranges if pressed, and steer quotes to a personal conversation.
+- Never invent prices, package rates, or cost ranges. If asked about pricing, say the studio quotes personally after understanding scope — do not guess numbers.
 - Keep replies concise (usually 2–4 short paragraphs or tight bullets).
-- Encourage booking via Text SMS (${siteConfig.sms}), WhatsApp, or email (${siteConfig.email}) for quotes and scheduling.
+- Encourage booking via Text SMS (${siteConfig.sms}), WhatsApp, or email (${siteConfig.email}) for a personal quote and scheduling.
 
 ${presence}
 
@@ -37,9 +37,9 @@ Contact shortcuts:
 
 const FALLBACK_REPLIES: { match: RegExp; reply: string }[] = [
   {
-    match: /price|budget|cost|quote|rate|how much/i,
+    match: /price|budget|cost|quote|rate|how much|pricing|fee|package/i,
     reply:
-      "Happy to frame scope before numbers — exact fees turn on shoot days, crew, deliverables, and post. Tell me the project type, rough timeline, and what you need delivered (film length, still count, colour grade, etc.), and I’ll outline what to confirm. For a personal quote, Text or WhatsApp is the fastest path.",
+      "Happy to help frame scope first — project type, rough timeline, and what you need delivered (film length, still count, colour grade, etc.). Pricing is quoted personally once the studio understands the brief. Text or WhatsApp is the fastest path for a tailored quote.",
   },
   {
     match: /availab|book|schedule|when|calendar|slot|date/i,

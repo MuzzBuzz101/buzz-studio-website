@@ -51,7 +51,7 @@ export const proposalChapters = [
     index: "04",
     title: "The Deliverables",
     description:
-      "Packages itemized without ambiguity — reels, stills, and premium inclusions — so scope and investment stay transparent.",
+      "Deliverables itemized without ambiguity — reels, stills, and premium inclusions — so scope stays clear before production begins.",
   },
 ] as const;
 

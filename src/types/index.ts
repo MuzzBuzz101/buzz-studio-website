@@ -90,7 +90,7 @@ export interface ClientLogo {
   name: string;
 }
 
-/** A quantifiable career highlight — retainer values, campaign volume, experience, etc. */
+/** A quantifiable career highlight — campaign volume, experience, etc. */
 export interface Highlight {
   id: string;
   title: string;

@@ -71,7 +71,7 @@ export const clientLogos: ClientLogo[] = [
 
 export const highlights: Highlight[] = [
   { id: "h1", title: "5+ Years", organization: "Creative Production & Content Experience", year: 2026 },
-  { id: "h2", title: "14,000 TL Campaign", organization: "Raccoon Restaurant — Menu Production", year: 2023 },
-  { id: "h3", title: "8-Video Bundle", organization: "Shawn X — 10,000 TL Promotional Rollout", year: 2022 },
+  { id: "h2", title: "Menu Campaign", organization: "Raccoon Restaurant — Reels + Macro Photography", year: 2023 },
+  { id: "h3", title: "8-Video Bundle", organization: "Shawn X — Promotional Rollout", year: 2022 },
   { id: "h4", title: "15–20 Portraits / Cycle", organization: "Graduation Photography, EUL", year: 2024 },
 ];

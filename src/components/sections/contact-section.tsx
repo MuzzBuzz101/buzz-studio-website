@@ -144,7 +144,7 @@ export function ContactSection() {
                   name="message"
                   required
                   rows={4}
-                  placeholder="Tell us about your timeline, budget, and vision."
+                  placeholder="Tell us about your timeline, deliverables, and vision."
                   className="resize-none rounded-lg border border-white/15 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder:text-obsidian-500 focus:outline-none focus:ring-1 focus:ring-white/40"
                 />
               </div>

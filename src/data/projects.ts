@@ -11,14 +11,14 @@ export const projects: Project[] = [
     synopsis:
       "A multi-stage content rollout for independent artist Shawn X — an original cinematic music video followed by an 8-video promotional bundle.",
     description:
-      "Scripted, directed, and executed end-to-end for artist Shawn X: an independent cinematic music video, an 8-video promotional bundle delivered for 10,000 TL, and an ongoing monthly contract covering long-form videos, micro-reels, and portrait sessions. Handled everything from concept and shot-listing through DaVinci Resolve color grading on a Sony A7 IV with prime glass.",
+      "Scripted, directed, and executed end-to-end for artist Shawn X: an independent cinematic music video, an 8-video promotional bundle, and an ongoing monthly contract covering long-form videos, micro-reels, and portrait sessions. Handled everything from concept and shot-listing through DaVinci Resolve color grading on a Sony A7 IV with prime glass.",
     videoSrc: "/videos/case-studies/shawn-x-music-video.mp4",
     videoAspect: "16:9",
     coverImage: "/images/projects/shawn-x-music-video/cover.jpg",
     featured: true,
     specs: {
       client: "Artist Shawn X",
-      deliverable: "Music Video + 8-Video Promotional Bundle (10,000 TL) + Monthly Retainer",
+      deliverable: "Music Video + 8-Video Promotional Bundle + Monthly Retainer",
       gear: ["Sony A7 IV", "50mm Prime Lens", "Electronic Gimbal", "Wireless Lavalier Audio"],
       postTools: ["DaVinci Resolve", "CapCut", "Adobe Lightroom"],
       location: "Lefke, Cyprus",
@@ -47,7 +47,7 @@ export const projects: Project[] = [
     roles: ["Creative Director", "Cinematographer", "Editor", "Colorist", "Photographer"],
     year: 2023,
     synopsis:
-      "A multi-tiered menu production campaign pairing cinematic reels with macro food photography, valued at 14,000 TL.",
+      "A multi-tiered menu production campaign pairing cinematic reels with macro food photography.",
     description:
       "Engineered a full menu production campaign for Raccoon Restaurant — cinematic reels and macro-lens food photography designed to make every dish read as premium across social and in-venue menu boards. Shot on a Sony A7 IV with an 85mm macro lens under continuous studio lighting, graded in DaVinci Resolve for warm, appetite-driving color.",
     videoSrc: "/videos/case-studies/raccoon-restaurant.mp4",
@@ -56,7 +56,7 @@ export const projects: Project[] = [
     featured: true,
     specs: {
       client: "Raccoon Restaurant",
-      deliverable: "Multi-Tiered Menu Campaign — Reels + Macro Photography (Valued at 14,000 TL)",
+      deliverable: "Multi-Tiered Menu Campaign — Reels + Macro Photography",
       gear: ["Sony A7 IV", "85mm Macro Lens", "Continuous Studio Lighting", "Electronic Gimbal"],
       postTools: ["DaVinci Resolve", "Adobe Lightroom", "CapCut"],
       location: "Lefke, Cyprus",
