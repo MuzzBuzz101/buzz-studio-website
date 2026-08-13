@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { del, list, put } from "@vercel/blob";
+import { del, get, list, put } from "@vercel/blob";
 import {
   ALLOWED_IMAGE_TYPES,
   ALLOWED_VIDEO_TYPES,
@@ -19,9 +19,20 @@ const LOCAL_STORE_PATH = path.join(process.cwd(), "data", "admin-store.json");
 const BLOB_STORE_PATHNAME = "admin/store.json";
 
 type StoreBackend = "blob" | "local";
+type BlobAccess = "public" | "private";
 
 export function hasBlobToken(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
+}
+
+/** Private Blob stores require access:'private' (default). Set BLOB_ACCESS=public only for public stores. */
+export function getBlobAccess(): BlobAccess {
+  const value = process.env.BLOB_ACCESS?.trim().toLowerCase();
+  return value === "public" ? "public" : "private";
+}
+
+function blobToken() {
+  return process.env.BLOB_READ_WRITE_TOKEN;
 }
 
 export function isVercelRuntime(): boolean {
@@ -34,7 +45,14 @@ export function getStorageInfo(): {
   banner: string | null;
 } {
   if (hasBlobToken()) {
-    return { backend: "blob", uploadsEnabled: true, banner: null };
+    return {
+      backend: "blob",
+      uploadsEnabled: true,
+      banner:
+        getBlobAccess() === "private"
+          ? "Blob storage is private — orders and media are saved securely for admin only."
+          : null,
+    };
   }
   if (isVercelRuntime()) {
     return {
@@ -86,8 +104,31 @@ async function writeLocalStore(store: AdminStore): Promise<void> {
   await fs.writeFile(LOCAL_STORE_PATH, JSON.stringify(store, null, 2), "utf8");
 }
 
+async function streamToText(stream: ReadableStream<Uint8Array>): Promise<string> {
+  return new Response(stream).text();
+}
+
 async function readBlobStore(): Promise<AdminStore> {
-  const { blobs } = await list({ prefix: BLOB_STORE_PATHNAME, limit: 10 });
+  const access = getBlobAccess();
+  const token = blobToken();
+
+  if (access === "private") {
+    const result = await get(BLOB_STORE_PATHNAME, {
+      access: "private",
+      useCache: false,
+      token,
+    });
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
+    }
+    try {
+      return normalizeStore(JSON.parse(await streamToText(result.stream)));
+    } catch {
+      return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
+    }
+  }
+
+  const { blobs } = await list({ prefix: BLOB_STORE_PATHNAME, limit: 10, token });
   const match = blobs.find((b) => b.pathname === BLOB_STORE_PATHNAME) ?? blobs[0];
   if (!match) return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
   const res = await fetch(match.url, { cache: "no-store" });
@@ -97,12 +138,17 @@ async function readBlobStore(): Promise<AdminStore> {
 
 async function writeBlobStore(store: AdminStore): Promise<void> {
   await put(BLOB_STORE_PATHNAME, JSON.stringify(store, null, 2), {
-    access: "public",
+    access: getBlobAccess(),
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: "application/json",
-    token: process.env.BLOB_READ_WRITE_TOKEN,
+    token: blobToken(),
   });
+}
+
+/** Authenticated proxy URL for private media (admin UI). */
+export function adminMediaProxyUrl(pathname: string): string {
+  return `/api/admin/file?pathname=${encodeURIComponent(pathname)}`;
 }
 
 export async function readStore(): Promise<AdminStore> {
@@ -187,9 +233,13 @@ function detectMediaType(mime: string): MediaType | null {
 async function removeMediaFile(item: AdminMedia): Promise<void> {
   if (item.blobPathname && hasBlobToken()) {
     try {
-      await del(item.url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      await del(item.blobPathname, { token: blobToken() });
     } catch {
-      // Best-effort cleanup
+      try {
+        await del(item.url, { token: blobToken() });
+      } catch {
+        // Best-effort cleanup
+      }
     }
     return;
   }
@@ -255,14 +305,19 @@ export async function uploadMedia(input: {
 
   if (hasBlobToken()) {
     const pathname = `admin/media/${folder.id}/${id}-${safeName}`;
+    const access = getBlobAccess();
     const blob = await put(pathname, input.file, {
-      access: "public",
+      access,
       addRandomSuffix: false,
       contentType: mime,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      token: blobToken(),
     });
-    url = blob.url;
     blobPathname = blob.pathname;
+    // Private blobs are not publicly fetchable — serve via admin proxy.
+    url =
+      access === "private"
+        ? adminMediaProxyUrl(blob.pathname)
+        : blob.url;
   } else {
     const relDir = path.join("uploads", "admin", folder.id);
     const absDir = path.join(process.cwd(), "public", relDir);

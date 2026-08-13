@@ -16,23 +16,6 @@ const quickLinks = [
   { label: "LinkedIn", href: siteConfig.socials[1].href, icon: LinkedInIcon },
 ];
 
-function openMailtoFallback(payload: {
-  name: string;
-  email: string;
-  projectType?: string;
-  duration?: string;
-  message: string;
-}) {
-  const subject = encodeURIComponent(`New Inquiry — ${payload.projectType || "General"}`);
-  const durationLine = payload.duration
-    ? `Estimated Length: ${payload.duration} minutes\n`
-    : "";
-  const body = encodeURIComponent(
-    `Name: ${payload.name}\nEmail: ${payload.email}\nProject Type: ${payload.projectType}\n${durationLine}\n${payload.message}`
-  );
-  window.location.href = `mailto:${siteConfig.email}?subject=${subject}&body=${body}`;
-}
-
 export function ContactSection() {
   const [projectType, setProjectType] = useState<string | undefined>(undefined);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
@@ -84,9 +67,9 @@ export function ContactSection() {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Could not send inquiry. You can fall back to email."
+          : "Could not send inquiry. Please try again or email us directly."
       );
-      openMailtoFallback({ name, email, projectType, duration, message });
+      // Do not auto-open mailto — orders must land in /admin when the API works.
     }
   };
 
@@ -227,7 +210,14 @@ export function ContactSection() {
 
                 {status === "error" && errorMessage ? (
                   <p className="mt-4 text-sm text-red-300" role="alert">
-                    {errorMessage} Opening your email client as a fallback…
+                    {errorMessage}{" "}
+                    <a
+                      href={`mailto:${siteConfig.email}`}
+                      className="underline underline-offset-2 hover:text-white"
+                    >
+                      Email us instead
+                    </a>
+                    .
                   </p>
                 ) : null}
 
