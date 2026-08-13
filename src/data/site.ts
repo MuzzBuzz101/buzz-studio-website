@@ -10,9 +10,12 @@ export const siteConfig = {
   tagline: "Creative Producer — Video, Photography & Post-Production",
   description:
     "Creative Producer and Multimedia Content Creator with 5+ years handling the full production pipeline — cinematography, commercial photography, editing, and DaVinci Resolve color grading — for food & beverage, real estate, fashion, and music clients.",
-  url: "https://buzzstudio101.com",
+  url: "https://buzzstudiosai.com",
   email: "shahkazim2016@gmail.com",
   phone: "+90 539 138 73 74",
+  /** E.164 digits for tel/sms links (no spaces). */
+  phoneE164: "+905391387374",
+  sms: "sms:+905391387374",
   whatsapp: "https://wa.me/905391387374",
   location: "Lefke, Cyprus",
   socials: [

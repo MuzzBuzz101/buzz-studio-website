@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CustomCursor } from "@/components/ui/custom-cursor";
 import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
+import { AiConcierge } from "@/components/concierge/ai-concierge";
 import { siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -92,6 +93,7 @@ export default function RootLayout({
           <Header />
           <main>{children}</main>
           <Footer />
+          <AiConcierge />
         </SmoothScrollProvider>
       </body>
     </html>

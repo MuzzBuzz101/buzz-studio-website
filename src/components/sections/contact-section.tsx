@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, Mail, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Mail, MessageCircle, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { InstagramIcon, LinkedInIcon } from "@/components/ui/brand-icons";
@@ -10,6 +10,7 @@ import { inquiryTypes, siteConfig } from "@/data/site";
 
 const quickLinks = [
   { label: "Email", href: `mailto:${siteConfig.email}`, icon: Mail },
+  { label: "Text", href: siteConfig.sms, icon: Smartphone },
   { label: "WhatsApp", href: siteConfig.whatsapp, icon: MessageCircle },
   { label: "Instagram", href: siteConfig.socials[0].href, icon: InstagramIcon },
   { label: "LinkedIn", href: siteConfig.socials[1].href, icon: LinkedInIcon },
