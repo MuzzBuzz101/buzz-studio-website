@@ -2,6 +2,7 @@ import { Hero } from "@/components/sections/hero";
 import { SelectedWorks } from "@/components/sections/selected-works";
 import { MotionStillsSection } from "@/components/sections/motion-stills-section";
 import { PipelineSection } from "@/components/sections/pipeline-section";
+import { ProposalProcess } from "@/components/sections/proposal-process";
 import { ClientsTicker } from "@/components/sections/clients-ticker";
 import { ContactSection } from "@/components/sections/contact-section";
 import { getFeaturedProjects, projects } from "@/data/projects";
@@ -16,6 +17,7 @@ export default function Home() {
       <SelectedWorks projects={featuredProjects} />
       <MotionStillsSection projects={projects} />
       <PipelineSection />
+      <ProposalProcess />
       <ClientsTicker />
       <ContactSection />
     </>
