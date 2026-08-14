@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AiConcierge } from "@/components/concierge/ai-concierge";
+import { AnalyticsTracker } from "@/components/analytics/analytics-tracker";
 
 export default function SiteLayout({
   children,
@@ -9,6 +10,7 @@ export default function SiteLayout({
 }>) {
   return (
     <>
+      <AnalyticsTracker />
       <Header />
       <main>{children}</main>
       <Footer />

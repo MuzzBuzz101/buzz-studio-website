@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Archive,
   Check,
+  CheckCircle2,
   Copy,
   Mail,
   Reply,
@@ -14,14 +15,15 @@ import {
 import { Button } from "@/components/ui/button";
 import type { AdminOrder, OrderStatus } from "@/lib/admin-types";
 import { cn } from "@/lib/utils";
-import { formatDate, formatRelativeTime } from "./admin-utils";
+import { formatDate, formatRelativeTime, orderStatusLabel } from "./admin-utils";
 
 type FilterChip = "all" | OrderStatus;
 
 const FILTERS: { id: FilterChip; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "new", label: "New" },
-  { id: "read", label: "Read" },
+  { id: "new", label: "Pending" },
+  { id: "read", label: "In progress" },
+  { id: "done", label: "Done" },
   { id: "archived", label: "Archived" },
 ];
 
@@ -159,11 +161,13 @@ export function AdminOrdersPanel({
                             "bg-accent/20 text-accent-soft",
                           order.status === "read" &&
                             "bg-white/10 text-obsidian-200",
+                          order.status === "done" &&
+                            "bg-emerald-500/15 text-emerald-200",
                           order.status === "archived" &&
                             "bg-white/5 text-obsidian-400"
                         )}
                       >
-                        {order.status}
+                        {orderStatusLabel(order.status)}
                       </span>
                     </div>
                     <p className="mt-1 truncate text-xs text-obsidian-400">
@@ -243,7 +247,7 @@ export function AdminOrdersPanel({
 
               <div className="flex-1 overflow-y-auto px-5 py-6 md:px-6">
                 <div className="flex flex-wrap gap-2">
-                  {selected.status !== "read" && selected.status !== "archived" ? (
+                  {selected.status === "new" ? (
                     <Button
                       size="sm"
                       variant="outline"
@@ -251,7 +255,19 @@ export function AdminOrdersPanel({
                       onClick={() => void onStatusChange(selected.id, "read")}
                     >
                       <Check className="h-3.5 w-3.5" />
-                      Mark read
+                      In progress
+                    </Button>
+                  ) : null}
+                  {selected.status !== "done" &&
+                  selected.status !== "archived" ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={busy}
+                      onClick={() => void onStatusChange(selected.id, "done")}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Mark done
                     </Button>
                   ) : null}
                   {selected.status !== "archived" ? (
@@ -347,11 +363,13 @@ export function AdminOrdersPanel({
                             "bg-accent/20 text-accent-soft",
                           selected.status === "read" &&
                             "bg-white/10 text-obsidian-200",
+                          selected.status === "done" &&
+                            "bg-emerald-500/15 text-emerald-200",
                           selected.status === "archived" &&
                             "bg-white/5 text-obsidian-400"
                         )}
                       >
-                        {selected.status}
+                        {orderStatusLabel(selected.status)}
                       </span>
                     </dd>
                   </div>

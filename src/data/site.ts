@@ -60,6 +60,7 @@ export const navLinks = [
   { label: "Work", href: "/#work" },
   { label: "Motion / Stills", href: "/#motion-stills" },
   { label: "Pipeline", href: "/#pipeline" },
+  { label: "About", href: "/#about" },
   { label: "Proposal", href: "/#proposal" },
   { label: "Contact", href: "/#contact" },
 ];

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Play } from "lucide-react";
+import { trackVideoView } from "@/components/analytics/analytics-tracker";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,8 @@ interface LocalVideoEmbedProps {
   className?: string;
   /** Real aspect ratio of the video file. Defaults to "16:9". */
   aspect?: "16:9" | "9:16";
+  /** Project slug for analytics video_view events. */
+  slug?: string;
 }
 
 /**
@@ -20,7 +23,14 @@ interface LocalVideoEmbedProps {
  * points to) is only mounted once the visitor clicks play, so a self-hosted
  * case-study file never blocks the initial page load.
  */
-export function LocalVideoEmbed({ src, title, poster, className, aspect = "16:9" }: LocalVideoEmbedProps) {
+export function LocalVideoEmbed({
+  src,
+  title,
+  poster,
+  className,
+  aspect = "16:9",
+  slug,
+}: LocalVideoEmbedProps) {
   const [active, setActive] = useState(false);
   const isVertical = aspect === "9:16";
 
@@ -48,7 +58,14 @@ export function LocalVideoEmbed({ src, title, poster, className, aspect = "16:9"
       )}
     >
       <button
-        onClick={() => setActive(true)}
+        onClick={() => {
+          setActive(true);
+          trackVideoView({
+            slug: slug || title,
+            videoId: src,
+            path: typeof window !== "undefined" ? window.location.pathname : undefined,
+          });
+        }}
         data-cursor="view"
         data-cursor-text="Play"
         aria-label={`Play ${title}`}

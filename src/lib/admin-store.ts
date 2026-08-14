@@ -5,11 +5,15 @@ import {
   ALLOWED_IMAGE_TYPES,
   ALLOWED_VIDEO_TYPES,
   EMPTY_ADMIN_STORE,
+  EMPTY_ANALYTICS,
   MAX_UPLOAD_BYTES,
+  ORDER_STATUSES,
   type AdminFolder,
   type AdminMedia,
   type AdminOrder,
   type AdminStore,
+  type AnalyticsDailyBucket,
+  type AnalyticsStore,
   type FolderKind,
   type MediaType,
   type OrderStatus,
@@ -74,14 +78,94 @@ function createId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function todayKey(d = new Date()): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function normalizeDaily(raw: unknown): AnalyticsDailyBucket[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (row): row is AnalyticsDailyBucket =>
+        Boolean(row) &&
+        typeof row === "object" &&
+        typeof (row as AnalyticsDailyBucket).date === "string"
+    )
+    .map((row) => ({
+      date: row.date,
+      visitors: Number(row.visitors) || 0,
+      pageViews: Number(row.pageViews) || 0,
+      videoViews: Number(row.videoViews) || 0,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-30);
+}
+
+function normalizeAnalytics(raw: unknown): AnalyticsStore {
+  if (!raw || typeof raw !== "object") {
+    return {
+      ...EMPTY_ANALYTICS,
+      videoViews: {},
+      visitorIds: [],
+      daily: [],
+    };
+  }
+  const data = raw as Partial<AnalyticsStore>;
+  const videoViews: Record<string, number> = {};
+  if (data.videoViews && typeof data.videoViews === "object") {
+    for (const [key, value] of Object.entries(data.videoViews)) {
+      const n = Number(value);
+      if (key && Number.isFinite(n) && n > 0) videoViews[key] = Math.floor(n);
+    }
+  }
+  const visitorIds = Array.isArray(data.visitorIds)
+    ? data.visitorIds.filter((id): id is string => typeof id === "string").slice(-5000)
+    : [];
+  return {
+    visitors: Math.max(0, Math.floor(Number(data.visitors) || 0)),
+    pageViews: Math.max(0, Math.floor(Number(data.pageViews) || 0)),
+    videoViews,
+    visitorIds,
+    daily: normalizeDaily(data.daily),
+  };
+}
+
 function normalizeStore(raw: unknown): AdminStore {
-  if (!raw || typeof raw !== "object") return { ...EMPTY_ADMIN_STORE };
+  if (!raw || typeof raw !== "object") {
+    return {
+      ...EMPTY_ADMIN_STORE,
+      folders: [],
+      media: [],
+      orders: [],
+      analytics: {
+        ...EMPTY_ANALYTICS,
+        videoViews: {},
+        visitorIds: [],
+        daily: [],
+      },
+    };
+  }
   const data = raw as Partial<AdminStore>;
   return {
     folders: Array.isArray(data.folders) ? data.folders : [],
     media: Array.isArray(data.media) ? data.media : [],
     orders: Array.isArray(data.orders) ? data.orders : [],
+    analytics: normalizeAnalytics(data.analytics),
   };
+}
+
+function ensureDailyBucket(
+  daily: AnalyticsDailyBucket[],
+  date: string
+): AnalyticsDailyBucket {
+  let bucket = daily.find((d) => d.date === date);
+  if (!bucket) {
+    bucket = { date, visitors: 0, pageViews: 0, videoViews: 0 };
+    daily.push(bucket);
+    daily.sort((a, b) => a.date.localeCompare(b.date));
+    while (daily.length > 30) daily.shift();
+  }
+  return bucket;
 }
 
 async function ensureLocalDir(filePath: string) {
@@ -94,7 +178,7 @@ async function readLocalStore(): Promise<AdminStore> {
     return normalizeStore(JSON.parse(text));
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
-    if (code === "ENOENT") return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
+    if (code === "ENOENT") return normalizeStore(null);
     throw err;
   }
 }
@@ -119,20 +203,20 @@ async function readBlobStore(): Promise<AdminStore> {
       token,
     });
     if (!result || result.statusCode !== 200 || !result.stream) {
-      return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
+      return normalizeStore(null);
     }
     try {
       return normalizeStore(JSON.parse(await streamToText(result.stream)));
     } catch {
-      return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
+      return normalizeStore(null);
     }
   }
 
   const { blobs } = await list({ prefix: BLOB_STORE_PATHNAME, limit: 10, token });
   const match = blobs.find((b) => b.pathname === BLOB_STORE_PATHNAME) ?? blobs[0];
-  if (!match) return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
+  if (!match) return normalizeStore(null);
   const res = await fetch(match.url, { cache: "no-store" });
-  if (!res.ok) return { ...EMPTY_ADMIN_STORE, folders: [], media: [], orders: [] };
+  if (!res.ok) return normalizeStore(null);
   return normalizeStore(await res.json());
 }
 
@@ -172,6 +256,12 @@ async function updateStore(
     folders: [...current.folders],
     media: [...current.media],
     orders: [...current.orders],
+    analytics: {
+      ...current.analytics,
+      videoViews: { ...current.analytics.videoViews },
+      visitorIds: [...(current.analytics.visitorIds || [])],
+      daily: current.analytics.daily.map((d) => ({ ...d })),
+    },
   });
   await writeStore(next);
   return next;
@@ -407,7 +497,7 @@ export async function updateOrderStatus(
   orderId: string,
   status: OrderStatus
 ): Promise<AdminOrder> {
-  if (!["new", "read", "archived"].includes(status)) {
+  if (!ORDER_STATUSES.includes(status)) {
     throw new Error("Invalid status.");
   }
 
@@ -423,4 +513,116 @@ export async function updateOrderStatus(
 
   if (!updated) throw new Error("Order not found.");
   return updated;
+}
+
+export type AnalyticsEventType = "pageview" | "visit" | "video_view";
+
+export async function recordAnalyticsEvent(input: {
+  type: AnalyticsEventType;
+  visitorId: string;
+  path?: string;
+  videoId?: string;
+  slug?: string;
+}): Promise<{ visitorId: string; isNewVisitor: boolean }> {
+  const visitorId =
+    input.visitorId.trim().slice(0, 64) || createId("vid");
+  let isNewVisitor = false;
+
+  await updateStore((store) => {
+    const analytics = store.analytics;
+    const ids = analytics.visitorIds || [];
+    const known = ids.includes(visitorId);
+    if (!known) {
+      isNewVisitor = true;
+      ids.push(visitorId);
+      if (ids.length > 5000) ids.splice(0, ids.length - 5000);
+      analytics.visitorIds = ids;
+      analytics.visitors += 1;
+    }
+
+    const day = ensureDailyBucket(analytics.daily, todayKey());
+
+    if (input.type === "visit") {
+      if (isNewVisitor) day.visitors += 1;
+      return store;
+    }
+
+    if (input.type === "pageview") {
+      analytics.pageViews += 1;
+      day.pageViews += 1;
+      if (isNewVisitor) day.visitors += 1;
+      return store;
+    }
+
+    // video_view
+    const key =
+      (input.slug || input.videoId || input.path || "unknown")
+        .trim()
+        .slice(0, 120) || "unknown";
+    analytics.videoViews[key] = (analytics.videoViews[key] || 0) + 1;
+    day.videoViews += 1;
+    if (isNewVisitor) day.visitors += 1;
+    return store;
+  });
+
+  return { visitorId, isNewVisitor };
+}
+
+export type AnalyticsSummary = {
+  visitors: number;
+  pageViews: number;
+  videoViewsTotal: number;
+  videoViews: { id: string; views: number }[];
+  daily: AnalyticsDailyBucket[];
+  orders: {
+    pending: number;
+    inProgress: number;
+    done: number;
+    archived: number;
+    total: number;
+  };
+};
+
+export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
+  const store = await readStore();
+  const analytics = store.analytics;
+  const videoViews = Object.entries(analytics.videoViews)
+    .map(([id, views]) => ({ id, views }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 20);
+
+  const videoViewsTotal = Object.values(analytics.videoViews).reduce(
+    (sum, n) => sum + n,
+    0
+  );
+
+  const orders = {
+    pending: store.orders.filter((o) => o.status === "new").length,
+    inProgress: store.orders.filter((o) => o.status === "read").length,
+    done: store.orders.filter((o) => o.status === "done").length,
+    archived: store.orders.filter((o) => o.status === "archived").length,
+    total: store.orders.length,
+  };
+
+  // Fill last 30 days for charts (zeros for missing days)
+  const dailyMap = new Map(analytics.daily.map((d) => [d.date, d]));
+  const filled: AnalyticsDailyBucket[] = [];
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setUTCDate(d.getUTCDate() - i);
+    const key = todayKey(d);
+    filled.push(
+      dailyMap.get(key) || { date: key, visitors: 0, pageViews: 0, videoViews: 0 }
+    );
+  }
+
+  return {
+    visitors: analytics.visitors,
+    pageViews: analytics.pageViews,
+    videoViewsTotal,
+    videoViews,
+    daily: filled,
+    orders,
+  };
 }

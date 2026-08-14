@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Play } from "lucide-react";
+import { trackVideoView } from "@/components/analytics/analytics-tracker";
 import { cn } from "@/lib/utils";
 
 interface VimeoEmbedProps {
@@ -12,13 +13,21 @@ interface VimeoEmbedProps {
   className?: string;
   /** Real aspect ratio of the video. Defaults to "16:9". */
   aspect?: "16:9" | "9:16";
+  slug?: string;
 }
 
 /**
  * Facade embed: Vimeo's player bundle is several hundred KB, so the iframe is
  * only injected on interaction. Until then this is just one optimized image.
  */
-export function VimeoEmbed({ vimeoId, title, poster, className, aspect = "16:9" }: VimeoEmbedProps) {
+export function VimeoEmbed({
+  vimeoId,
+  title,
+  poster,
+  className,
+  aspect = "16:9",
+  slug,
+}: VimeoEmbedProps) {
   const [active, setActive] = useState(false);
   const isVertical = aspect === "9:16";
 
@@ -40,7 +49,17 @@ export function VimeoEmbed({ vimeoId, title, poster, className, aspect = "16:9" 
         />
       ) : (
         <button
-          onClick={() => setActive(true)}
+          onClick={() => {
+            setActive(true);
+            trackVideoView({
+              slug: slug || title,
+              videoId: `vimeo:${vimeoId}`,
+              path:
+                typeof window !== "undefined"
+                  ? window.location.pathname
+                  : undefined,
+            });
+          }}
           data-cursor="view"
           data-cursor-text="Play"
           aria-label={`Play ${title}`}

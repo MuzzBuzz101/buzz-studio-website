@@ -2,10 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { Play } from "lucide-react";
+import { trackVideoView } from "@/components/analytics/analytics-tracker";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-// The player only matters once the modal opens.
 const VideoPlayer = dynamic(
   () => import("@/components/ui/video-player").then((m) => m.VideoPlayer),
   { ssr: false }
@@ -16,11 +16,32 @@ interface VideoModalProps {
   poster?: string;
   triggerLabel?: string;
   className?: string;
+  /** Analytics id when the reel opens (e.g. hero-reel). */
+  trackId?: string;
 }
 
-export function VideoModal({ src, poster, triggerLabel = "Play Full Reel", className }: VideoModalProps) {
+export function VideoModal({
+  src,
+  poster,
+  triggerLabel = "Play Full Reel",
+  className,
+  trackId = "hero-reel",
+}: VideoModalProps) {
   return (
-    <Dialog>
+    <Dialog
+      onOpenChange={(open) => {
+        if (open && src) {
+          trackVideoView({
+            slug: trackId,
+            videoId: src,
+            path:
+              typeof window !== "undefined"
+                ? window.location.pathname
+                : undefined,
+          });
+        }
+      }}
+    >
       <DialogTrigger
         data-cursor="view"
         className={cn(
@@ -34,7 +55,12 @@ export function VideoModal({ src, poster, triggerLabel = "Play Full Reel", class
         <span className="tracking-wide">{triggerLabel}</span>
       </DialogTrigger>
       <DialogContent>
-        <VideoPlayer src={src} poster={poster} autoPlay className="aspect-video w-full" />
+        <VideoPlayer
+          src={src}
+          poster={poster}
+          autoPlay
+          className="aspect-video w-full"
+        />
       </DialogContent>
     </Dialog>
   );

@@ -57,6 +57,7 @@ export default function CaseStudyPage({ params }: PageProps) {
               title={project.title}
               poster={project.coverImage}
               aspect={project.videoAspect}
+              slug={project.slug}
             />
           ) : project.vimeoId ? (
             <VimeoEmbed
@@ -64,6 +65,7 @@ export default function CaseStudyPage({ params }: PageProps) {
               title={project.title}
               poster={project.coverImage}
               aspect={project.videoAspect}
+              slug={project.slug}
             />
           ) : (
             <div className="flex aspect-video w-full items-center justify-center rounded-2xl border border-white/10 bg-obsidian-900">

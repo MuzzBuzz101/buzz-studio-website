@@ -12,7 +12,8 @@ import type {
   FolderKind,
   OrderStatus,
 } from "@/lib/admin-types";
-import { AdminKpiStrip } from "./admin-kpi";
+import type { AnalyticsSummary } from "@/lib/admin-store";
+import { AdminDashboardPanel } from "./admin-dashboard-panel";
 import { AdminMediaPanel } from "./admin-media-panel";
 import { AdminOrdersPanel } from "./admin-orders-panel";
 import { AdminShell, type StorageInfo } from "./admin-shell";
@@ -26,11 +27,12 @@ import {
 function AdminDashboardInner() {
   const router = useRouter();
   const { toast } = useAdminToast();
-  const [tab, setTab] = useState<AdminTab>("media");
+  const [tab, setTab] = useState<AdminTab>("dashboard");
   const [tabReady, setTabReady] = useState(false);
   const [folders, setFolders] = useState<AdminFolder[]>([]);
   const [media, setMedia] = useState<AdminMedia[]>([]);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,16 +52,18 @@ function AdminDashboardInner() {
 
   const loadAll = useCallback(async () => {
     setError(null);
-    const [foldersRes, mediaRes, ordersRes] = await Promise.all([
+    const [foldersRes, mediaRes, ordersRes, analyticsRes] = await Promise.all([
       fetch("/api/admin/folders"),
       fetch("/api/admin/media"),
       fetch("/api/admin/orders"),
+      fetch("/api/admin/analytics"),
     ]);
 
     if (
       foldersRes.status === 401 ||
       mediaRes.status === 401 ||
-      ordersRes.status === 401
+      ordersRes.status === 401 ||
+      analyticsRes.status === 401
     ) {
       router.replace("/admin/login");
       return;
@@ -79,6 +83,10 @@ function AdminDashboardInner() {
       orders?: AdminOrder[];
       error?: string;
     };
+    const analyticsData = (await analyticsRes.json()) as {
+      analytics?: AnalyticsSummary;
+      error?: string;
+    };
 
     if (!foldersRes.ok) {
       throw new Error(foldersData.error || "Failed to load folders.");
@@ -89,10 +97,14 @@ function AdminDashboardInner() {
     if (!ordersRes.ok) {
       throw new Error(ordersData.error || "Failed to load orders.");
     }
+    if (!analyticsRes.ok) {
+      throw new Error(analyticsData.error || "Failed to load analytics.");
+    }
 
     setFolders(foldersData.folders || []);
     setMedia(mediaData.media || []);
     setOrders(ordersData.orders || []);
+    setAnalytics(analyticsData.analytics || null);
     setStorage(foldersData.storage || mediaData.storage || null);
     setSelectedFolderId((prev) => {
       if (prev && (foldersData.folders || []).some((f) => f.id === prev)) {
@@ -293,9 +305,11 @@ function AdminDashboardInner() {
       toast(
         status === "archived"
           ? "Order archived"
-          : status === "read"
-            ? "Marked as read"
-            : "Order updated"
+          : status === "done"
+            ? "Marked done"
+            : status === "read"
+              ? "In progress"
+              : "Order updated"
       );
     } catch (err) {
       const message =
@@ -317,12 +331,17 @@ function AdminDashboardInner() {
   }
 
   function onTabChange(value: string) {
-    const next = value === "orders" ? "orders" : "media";
+    const next: AdminTab =
+      value === "orders"
+        ? "orders"
+        : value === "media"
+          ? "media"
+          : "dashboard";
     setTab(next);
     writeStoredTab(next);
   }
 
-  const newOrderCount = orders.filter((o) => o.status === "new").length;
+  const pendingCount = orders.filter((o) => o.status === "new").length;
 
   return (
     <AdminShell
@@ -349,24 +368,18 @@ function AdminDashboardInner() {
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           className="mt-8 space-y-8"
         >
-          <AdminKpiStrip
-            newOrders={newOrderCount}
-            totalOrders={orders.length}
-            folders={folders.length}
-            mediaCount={media.length}
-          />
-
           <Tabs value={tab} onValueChange={onTabChange}>
-            <TabsList>
-              <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsList className="border-accent/15 bg-obsidian-950/50">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="orders">
                 Orders
-                {newOrderCount > 0 ? (
+                {pendingCount > 0 ? (
                   <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-obsidian-950">
-                    {newOrderCount}
+                    {pendingCount}
                   </span>
                 ) : null}
               </TabsTrigger>
+              <TabsTrigger value="media">Media</TabsTrigger>
             </TabsList>
 
             <div className="mt-8">
@@ -378,7 +391,16 @@ function AdminDashboardInner() {
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  {tab === "media" ? (
+                  {tab === "dashboard" ? (
+                    <AdminDashboardPanel
+                      analytics={analytics}
+                      orders={orders}
+                      onOpenOrders={() => {
+                        setTab("orders");
+                        writeStoredTab("orders");
+                      }}
+                    />
+                  ) : tab === "media" ? (
                     <AdminMediaPanel
                       folders={folders}
                       media={media}

@@ -35,17 +35,19 @@ export function formatRelativeTime(iso: string) {
 }
 
 export const TAB_STORAGE_KEY = "buzz-admin-tab";
-export type AdminTab = "media" | "orders";
+export type AdminTab = "dashboard" | "orders" | "media";
 
 export function readStoredTab(): AdminTab {
-  if (typeof window === "undefined") return "media";
+  if (typeof window === "undefined") return "dashboard";
   try {
     const value = sessionStorage.getItem(TAB_STORAGE_KEY);
-    if (value === "media" || value === "orders") return value;
+    if (value === "dashboard" || value === "media" || value === "orders") {
+      return value;
+    }
   } catch {
     /* ignore */
   }
-  return "media";
+  return "dashboard";
 }
 
 export function writeStoredTab(tab: AdminTab) {
@@ -53,5 +55,27 @@ export function writeStoredTab(tab: AdminTab) {
     sessionStorage.setItem(TAB_STORAGE_KEY, tab);
   } catch {
     /* ignore */
+  }
+}
+
+export function formatCompact(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 10_000) return `${(n / 1000).toFixed(1)}k`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+}
+
+export function orderStatusLabel(status: string) {
+  switch (status) {
+    case "new":
+      return "Pending";
+    case "read":
+      return "In progress";
+    case "done":
+      return "Done";
+    case "archived":
+      return "Archived";
+    default:
+      return status;
   }
 }
