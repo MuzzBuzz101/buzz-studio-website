@@ -6,7 +6,7 @@ export default function AdminLoginPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center text-sm text-obsidian-400">
-          Loading…
+          Opening gate…
         </div>
       }
     >

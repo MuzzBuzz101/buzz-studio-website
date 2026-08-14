@@ -18,8 +18,9 @@ export default function AdminLayout({
     <div className="min-h-screen bg-obsidian-950 text-obsidian-50">
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.04),_transparent_55%)]"
+        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(212,175,55,0.08),_transparent_45%),radial-gradient(ellipse_at_bottom_right,_rgba(255,255,255,0.04),_transparent_50%),radial-gradient(ellipse_at_center,_rgba(255,255,255,0.02),_transparent_60%)]"
       />
+      <div aria-hidden className="film-grain pointer-events-none fixed inset-0 opacity-80" />
       <div className="relative">{children}</div>
     </div>
   );
