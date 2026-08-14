@@ -3,7 +3,6 @@
  *
  * Photos (in public/images/about/):
  * - muzammil-camera.jpg — dominant cinematic visual (behind the lens)
- * - muzammil-portrait.jpg — portrait accent
  *
  * CVs (in public/docs/):
  * - Muzammil_CV.pdf — primary download (Version B Teal)
@@ -34,10 +33,6 @@ export const aboutContent = {
     camera: {
       src: "/images/about/muzammil-camera.jpg",
       alt: "Syed Muzammil Shah Kazmi with camera — Buzz Studio",
-    },
-    portrait: {
-      src: "/images/about/muzammil-portrait.jpg",
-      alt: "Portrait of Syed Muzammil Shah Kazmi",
     },
   },
   cv: {

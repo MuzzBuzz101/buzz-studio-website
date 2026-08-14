@@ -23,52 +23,40 @@ export function AboutSection() {
       />
 
       <div className="container relative">
-        <div className="grid items-end gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 xl:gap-24">
-          {/* Visual composition: camera dominant + portrait accent */}
+        <div className="grid items-end gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 xl:gap-24">
+          {/* Single cinematic visual — full dominant plane */}
           <Reveal className="relative">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm md:aspect-[5/6]">
+            <motion.div
+              initial={{ opacity: 0, scale: 1.04 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-8%" }}
+              transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+              className="relative aspect-[3/4] w-full overflow-hidden rounded-sm md:aspect-[4/5]"
+            >
               <Image
                 src={a.photos.camera.src}
                 alt={a.photos.camera.alt}
                 fill
-                sizes="(max-width: 1024px) 100vw, 52vw"
-                className="object-cover object-[center_20%]"
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                className="object-cover object-[center_18%]"
+                quality={92}
                 priority={false}
               />
               <div
                 aria-hidden
-                className="absolute inset-0 bg-gradient-to-t from-obsidian-950/80 via-transparent to-obsidian-950/20"
+                className="absolute inset-0 bg-gradient-to-t from-obsidian-950/75 via-transparent to-obsidian-950/15"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-r from-obsidian-950/20 via-transparent to-transparent"
               />
               <div
                 aria-hidden
                 className="absolute inset-0 ring-1 ring-inset ring-white/10"
               />
-            </div>
-
-            {/* Portrait accent — floating glass frame */}
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.96 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: "-10%" }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute -bottom-6 right-4 w-[38%] max-w-[220px] overflow-hidden rounded-sm border border-white/15 bg-obsidian-900/80 shadow-[-20px_30px_60px_-20px_rgba(0,0,0,0.85)] backdrop-blur-sm md:-bottom-8 md:right-8 md:w-[34%]"
-            >
-              <div className="relative aspect-[3/4]">
-                <Image
-                  src={a.photos.portrait.src}
-                  alt={a.photos.portrait.alt}
-                  fill
-                  sizes="220px"
-                  className="object-cover object-top"
-                />
-                <div
-                  aria-hidden
-                  className="absolute inset-0 ring-1 ring-inset ring-accent/25"
-                />
-              </div>
             </motion.div>
 
-            <p className="mt-12 flex items-center gap-2 text-xs uppercase tracking-widest2 text-obsidian-400 md:mt-14">
+            <p className="mt-6 flex items-center gap-2 text-xs uppercase tracking-widest2 text-obsidian-400 md:mt-8">
               <MapPin className="h-3.5 w-3.5 text-accent" />
               {a.location}
             </p>
