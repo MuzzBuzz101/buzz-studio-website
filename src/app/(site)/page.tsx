@@ -4,6 +4,7 @@ import { MotionStillsSection } from "@/components/sections/motion-stills-section
 import { PipelineSection } from "@/components/sections/pipeline-section";
 import { AboutSection } from "@/components/sections/about-section";
 import { ProposalProcess } from "@/components/sections/proposal-process";
+import { RetainerSection } from "@/components/sections/retainer-section";
 import { ClientsTicker } from "@/components/sections/clients-ticker";
 import { ContactSection } from "@/components/sections/contact-section";
 import { getFeaturedProjects, projects } from "@/data/projects";
@@ -20,6 +21,7 @@ export default function Home() {
       <PipelineSection />
       <AboutSection />
       <ProposalProcess />
+      <RetainerSection />
       <ClientsTicker />
       <ContactSection />
     </>

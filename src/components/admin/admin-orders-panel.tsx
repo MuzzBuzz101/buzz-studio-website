@@ -375,6 +375,31 @@ export function AdminOrdersPanel({
                   </div>
                 </dl>
 
+                {selected.meta &&
+                Object.keys(selected.meta).some((k) => k !== "source") ? (
+                  <div className="mt-8">
+                    <p className="text-[11px] uppercase tracking-widest2 text-obsidian-400">
+                      Details
+                    </p>
+                    <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                      {Object.entries(selected.meta)
+                        .filter(([key]) => key !== "source")
+                        .map(([key, value]) => (
+                          <div key={key}>
+                            <dt className="text-[10px] uppercase tracking-widest2 text-obsidian-500">
+                              {key}
+                            </dt>
+                            <dd className="mt-1 text-sm text-obsidian-100">
+                              {value == null || value === ""
+                                ? "—"
+                                : String(value)}
+                            </dd>
+                          </div>
+                        ))}
+                    </dl>
+                  </div>
+                ) : null}
+
                 <div className="mt-8">
                   <p className="text-[11px] uppercase tracking-widest2 text-obsidian-400">
                     Message

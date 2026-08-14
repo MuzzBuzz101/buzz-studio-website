@@ -13,6 +13,27 @@ interface OrderBody {
   message?: string;
   videoLength?: string;
   duration?: string | number;
+  meta?: Record<string, unknown>;
+}
+
+function sanitizeMeta(
+  input: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (key.length > 64) continue;
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      value === null
+    ) {
+      out[key] =
+        typeof value === "string" ? value.trim().slice(0, 2000) : value;
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 export async function POST(request: Request) {
@@ -39,6 +60,12 @@ export async function POST(request: Request) {
           ? String(body.duration)
           : undefined;
 
+    const clientMeta = sanitizeMeta(body.meta);
+    const source =
+      typeof clientMeta?.source === "string"
+        ? clientMeta.source
+        : "contact-form";
+
     const order = await createOrder({
       name: typeof body.name === "string" ? body.name : "",
       email: typeof body.email === "string" ? body.email : "",
@@ -51,7 +78,7 @@ export async function POST(request: Request) {
             : undefined,
       message: typeof body.message === "string" ? body.message : undefined,
       videoLength,
-      meta: { source: "contact-form" },
+      meta: { ...clientMeta, source },
     });
 
     return NextResponse.json({ ok: true, id: order.id }, { status: 201 });
